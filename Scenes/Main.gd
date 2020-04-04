@@ -19,3 +19,10 @@ func make_rooms():
 		var h = min_size + randi() % (max_size - min_size)
 		room.make_room(pos, Vector2(w, h) * tile_size)
 		$Rooms.add_child(room)
+
+func _draw():
+	for room in $Rooms.get_children():
+		draw_rect(Rect2(room.position - room.size, room.size * 2), Color(31, 215, 0), false)
+
+func _process(delta):
+	update()
