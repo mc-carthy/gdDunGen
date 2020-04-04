@@ -26,3 +26,9 @@ func _draw():
 
 func _process(delta):
 	update()
+
+func _input(event):
+	if Input.is_action_pressed("ui_select"):
+		for room in $Rooms.get_children():
+			room.queue_free()
+		make_rooms()
