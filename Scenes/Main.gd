@@ -1,8 +1,9 @@
 extends Node2D
 
+onready var Map : TileMap = $TileMap
 var Room = preload("res://Scenes/Room.tscn")
 
-var tile_size = 32
+var tile_size = 128
 var num_rooms = 50
 var min_size = 4
 var max_size = 10
@@ -71,6 +72,30 @@ func _process(delta):
 
 func _input(event):
 	if Input.is_action_pressed("ui_select"):
+		path = null
 		for room in $Rooms.get_children():
 			room.queue_free()
 		make_rooms()
+	if Input.is_action_pressed("ui_focus_next"):
+		make_map()
+
+func make_map():
+	Map.clear()
+	var full_rect : Rect2 = Rect2()
+	for room in $Rooms.get_children():
+		var room_rect : Rect2 = Rect2(room.position - room.size, room.get_node('CollisionShape2D').shape.extents * 2)
+		full_rect = full_rect.merge(room_rect)
+	var top_left : Vector2 = Map.world_to_map(full_rect.position)
+	var bottom_right : Vector2 = Map.world_to_map(full_rect.end)
+	
+	for x in range (top_left.x, bottom_right.x):
+		for y in range (top_left.y, bottom_right.y):
+			Map.set_cell(x, y, 1)
+			
+	for room in $Rooms.get_children():
+		var size : Vector2 = (room.size / tile_size).floor()
+		var pos : Vector2 = Map.world_to_map(room.position)
+		var upper_left : Vector2 = (room.position / tile_size).floor() - size
+		for x in range(2, size.x * 2 - 1):
+			for y in range(2, size.y * 2 - 1):
+				Map.set_cell(upper_left.x + x, upper_left.y + y, 0)
