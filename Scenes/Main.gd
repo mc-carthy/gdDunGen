@@ -91,7 +91,8 @@ func make_map():
 	for x in range (top_left.x, bottom_right.x):
 		for y in range (top_left.y, bottom_right.y):
 			Map.set_cell(x, y, 1)
-			
+	
+	var corridors = []
 	for room in $Rooms.get_children():
 		var size : Vector2 = (room.size / tile_size).floor()
 		var pos : Vector2 = Map.world_to_map(room.position)
@@ -99,3 +100,31 @@ func make_map():
 		for x in range(2, size.x * 2 - 1):
 			for y in range(2, size.y * 2 - 1):
 				Map.set_cell(upper_left.x + x, upper_left.y + y, 0)
+		var path_point : int = path.get_closest_point(room.position)
+		for connection in path.get_point_connections(path_point):
+			if not connection in corridors:
+				var start : Vector2 = Map.world_to_map(path.get_point_position(path_point))
+				var end : Vector2 = Map.world_to_map(path.get_point_position(connection))
+				carve_path(start, end)
+		corridors.append(path_point)
+
+func carve_path(start, end):
+	var x_sign : float = sign(end.x - start.x)
+	var y_sign : float = sign(end.y - start.y)
+	if x_sign == 0:
+		x_sign = pow(-1.0, randi() % 2)
+	if y_sign == 0:
+		y_sign = pow(-1.0, randi() % 2)
+	var x_y = start
+	var y_x = end
+	if randi() % 2 > 0:
+		x_y = end
+		y_x = start
+	for x in range(start.x, end.x, x_sign):
+		Map.set_cell(x, x_y.y, 0)
+		Map.set_cell(x, x_y.y + y_sign, 0)
+		# Map.set_cell(x, x_y.y - y_sign, 0)
+	for y in range(start.y, end.y, y_sign):
+		Map.set_cell(y_x.x, y, 0)
+		Map.set_cell(y_x.x + x_sign, y, 0)
+		# Map.set_cell(y_x.x - x_sign, y, 0)
